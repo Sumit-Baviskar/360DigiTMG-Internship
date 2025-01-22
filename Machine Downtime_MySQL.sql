@@ -1,25 +1,5 @@
 
 
-Date,       2023-01-01,
-   Machine_ID  CNC-L1-Machine
-   ,Line_No    Line1
-   ,Hydraulic_Pressure(MPa)  7.1
-   ,Coolant_Level(%) 69.3
-   ,Air_Flow_Pressure(MPa)  0.63
-   ,Coolant_Temp(\u00b0C)   26.0
-   ,Oil_Temp(\u00b0C)     46.0
-   ,Bearing_Temp(\u00b0C)  33.4
-   ,Spindle_Shift(\u00b5m)  1.29
-   ,Tool_Wear(\u00b5m)    26.49
-   ,Spindle_Rotation(RPM)  25892.0
-   ,Power_Input(kw)       3.35
-   ,Torque(Nm)            24.05
-   ,Force(kN)             3.58
-   ,Downtime_Status       Failure
-   ,Operational_Time      12:00 PM
-
-
-
 -- Checking the data 
 select * from downtime;
    
