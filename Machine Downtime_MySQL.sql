@@ -1,546 +1,779 @@
 
-describe cars;
 
-select count(*) from cars;
+Date,       2023-01-01,
+   Machine_ID  CNC-L1-Machine
+   ,Line_No    Line1
+   ,Hydraulic_Pressure(MPa)  7.1
+   ,Coolant_Level(%) 69.3
+   ,Air_Flow_Pressure(MPa)  0.63
+   ,Coolant_Temp(\u00b0C)   26.0
+   ,Oil_Temp(\u00b0C)     46.0
+   ,Bearing_Temp(\u00b0C)  33.4
+   ,Spindle_Shift(\u00b5m)  1.29
+   ,Tool_Wear(\u00b5m)    26.49
+   ,Spindle_Rotation(RPM)  25892.0
+   ,Power_Input(kw)       3.35
+   ,Torque(Nm)            24.05
+   ,Force(kN)             3.58
+   ,Downtime_Status       Failure
+   ,Operational_Time      12:00 PM
 
 
 
-select * from cars;
+-- Checking the data 
+select * from downtime;
+   
 
+-- Count of rows    
+select count(*) from downtime;
 
-use cars;
-select * FROM cars;
+--  Description for data table
+DESCRIBE downtime;
 
-DESCRIBE cars;
+-- =-=================================== CATEGORRICAL DATA =================================================
 
-# ===================================== CATEGORRICAL DATA =================================================
+-- ================= Date ======================
 
-# ---------------------------------------- MACHINE_ID -----------------------------------------------------
+-- First Moment Business Decision
+--Mode 
 
-# MODE 
-
-SELECT COUNT(MACHINE_ID) AS MACHINE_ID_Mode
-FROM cars
-WHERE MACHINE_ID IS NOT NULL
-GROUP BY MACHINE_ID
+SELECT Date
+FROM downtime
+GROUP BY Date
 ORDER BY COUNT(*) DESC
-limit 1;
+LIMIT 1;
 
-# UNIQUE DISTINCT VALUE  
-
-SELECT 
-   MACHINE_ID, COUNT(MACHINE_ID) AS MACHINE_ID_Unique_Categories
-from cars
-GROUP BY MACHINE_ID ;
+-- Unique Distinct Values
+ 
+SELECT DISTINCT(Date) as unique_values 
+FROM downtime
 
 
-# ------------------------------------ Assembly_Line_No ---------------------------------------------------
+-- ================= Machine_ID ======================
 
-# MODE 
+-- First Moment Business Decision
+-- Mode 
 
-SELECT COUNT(Assembly_Line_No) AS Assembly_Line_No_Mode
-FROM cars
-WHERE Assembly_Line_No IS NOT NULL
-GROUP BY Assembly_Line_No
+SELECT Machine_ID
+FROM downtime
+GROUP BY Machine_ID
 ORDER BY COUNT(*) DESC
-limit 1;
+LIMIT 1;
 
-# UNIQUE DISTINCT VALUE  
 
+-- Unique Distinct Values
+ 
+SELECT DISTINCT(Machine_ID) as unique_values 
+FROM downtime
+
+
+   
+-- ================= Line_No ======================
+
+-- First Moment Business Decision
+-- Mode 
+
+SELECT Line_No
+FROM downtime
+GROUP BY Line_No
+ORDER BY COUNT(*) DESC
+LIMIT 1;
+
+
+-- Unique Distinct Values
+ 
+SELECT DISTINCT(Line_No) as unique_values 
+FROM downtime
+   
+-- ================= Downtime_Status ======================
+
+-- First Moment Business Decision
+-- Mode 
+
+SELECT Downtime_Status
+FROM downtime
+GROUP BY Downtime_Status
+ORDER BY COUNT(*) DESC
+LIMIT 1;
+
+
+-- Unique Distinct Values
+ 
+SELECT DISTINCT(Downtime_Status) as unique_values 
+FROM downtime
+
+-- ================= Operational_Time ======================
+
+-- First Moment Business Decision
+-- Mode 
+
+SELECT Operational_Time
+FROM downtime
+GROUP BY Operational_Time
+ORDER BY COUNT(*) DESC
+LIMIT 1;
+
+-- Unique Distinct Values
+ 
+SELECT DISTINCT(Operational_Time) as unique_values 
+FROM downtime
+
+
+
+-- =================================== NUMERICAL DATA =================================================
+
+-- ================= Hydraulic_Pressure(MPa) ======================
+
+-- First Moment Business Decision
+
+-- Mean
+SELECT AVG(Hydraulic_Pressure(MPa)) AS Mean
+FROM downtime;
+
+-- Median
 SELECT 
-   Assembly_Line_No, COUNT(Assembly_Line_No) AS Assembly_Line_No_Unique_Categories
-from cars
-GROUP BY Assembly_Line_No ;
-
-
-# ===================================== NUMERICAL DATA =====================================================
-
-# ------------------------------------ Hydraulic_Pressure ---------------------------------------------------
-
-#MEAN 
-
-SELECT AVG(Hydraulic_Pressure) AS Mean
-FROM cars;
-
-# MEDAIN 
-SELECT AVG(Hydraulic_Pressure) AS Median
+    AVG(Hydraulic_Pressure(MPa)) AS Median
 FROM (
-    SELECT Hydraulic_Pressure
-    FROM cars
-    WHERE Hydraulic_Pressure IS NOT NULL
-    ORDER BY Hydraulic_Pressure
-    LIMIT 2 OFFSET 
-        (SELECT FLOOR(COUNT(*) / 2) - 1)
-         FROM cars 
-         WHERE Hydraulic_Pressure IS NOT NULL)
+    SELECT Hydraulic_Pressure(MPa)
+    FROM downtime
+    WHERE Hydraulic_Pressure(MPa) IS NOT NULL
+    ORDER BY Hydraulic_Pressure(MPa)
+    LIMIT 2 - (SELECT COUNT(*) % 2 FROM downtime WHERE Hydraulic_Pressure(MPa) IS NOT NULL)  -- Adjust for odd/even number of rows
+    OFFSET FLOOR((SELECT COUNT(*) FROM downtime WHERE Hydraulic_Pressure(MPa) IS NOT NULL) / 2)  -- Get middle index for odd/even rows
 ) AS subquery;
 
-#Range 
-SELECT MAX(Hydraulic_Pressure) - MIN(Hydraulic_Pressure) AS Hydraulic_Pressure_Range 
-FROM cars
-WHERE Hydraulic_Pressure IS NOT NULL;
- 
- # Variance
+-- Second Moment Business Decision
+
+-- Range
 SELECT 
-    VAR_POP(Hydraulic_Pressure) AS Variance_Population,
-    STDDEV_POP(Hydraulic_Pressure) AS Std_Dev_Population,
-    MAX(Hydraulic_Pressure) - MIN(Hydraulic_Pressure) as range_1
-FROM cars
-WHERE Hydraulic_Pressure IS NOT NULL;
+    MAX(Hydraulic_Pressure(MPa)) - MIN(Hydraulic_Pressure(MPa)) AS Range 
+FROM downtime;
 
-# Third Moment Business Decision
--- Skewness Calculation (using above values)
+-- Variance and Standard Deviation
 SELECT 
-  (COUNT(*) / ((COUNT(*) - 1) * (COUNT(*) - 2))) * 
-  SUM(POW((Hydraulic_Pressure - (SELECT AVG(Hydraulic_Pressure) FROM cars)) / 
-  (SELECT STDDEV(Hydraulic_Pressure) FROM cars), 3)) AS skewness
-FROM cars;
+    VAR_POP(Hydraulic_Pressure(MPa)) AS Variance_Population,
+    STDDEV_POP(Hydraulic_Pressure(MPa)) AS Std_Dev_Population
+FROM downtime;
 
-#Fourth Moment Business Decision
--- Kurtosis Calculation (using above values)
+-- Third Moment Business Decision
 
-SELECT 
-  (COUNT(*) * (COUNT(*) + 1)) / ((COUNT(*) - 1) * (COUNT(*) - 2) * (COUNT(*) - 3)) * 
-  SUM(POW((Hydraulic_Pressure - (SELECT AVG(Hydraulic_Pressure) FROM cars)) / 
-  (SELECT STDDEV(Hydraulic_Pressure) FROM cars), 4)) - 
-  (3 * POW(COUNT(*) - 1, 2)) / ((COUNT(*) - 2) * (COUNT(*) - 3)) AS kurtosis
-FROM cars;
-
-
-
-# ------------------------------------ Coolant_Pressure ---------------------------------------------------
-
-SELECT AVG(Coolant_Pressure) AS Mean
-FROM cars;
-
-#Range 
-SELECT MAX(Coolant_Pressure) - MIN(Coolant_Pressure) AS Coolant_Pressure_Range 
-FROM cars
-WHERE Coolant_Pressure IS NOT NULL;
- 
- # Variance
-SELECT 
-    VAR_POP(Coolant_Pressure) AS Variance_Population,
-    STDDEV_POP(Coolant_Pressure) AS Std_Dev_Population,
-    MAX(Coolant_Pressure) - MIN(Coolant_Pressure) as range_1
-FROM cars
-WHERE Coolant_Pressure IS NOT NULL;
-
-# Third Moment Business Decision
--- Skewness Calculation (using above values)
+-- Skewness Calculation
 SELECT 
   (COUNT(*) / ((COUNT(*) - 1) * (COUNT(*) - 2))) * 
-  SUM(POW((Coolant_Pressure - (SELECT AVG(Coolant_Pressure) FROM cars)) / 
-  (SELECT STDDEV(Coolant_Pressure) FROM cars), 3)) AS skewness
-FROM cars;
+  SUM(POW((Hydraulic_Pressure(MPa) - (SELECT AVG(Hydraulic_Pressure(MPa)) FROM downtime)) / 
+  (SELECT STDDEV(Hydraulic_Pressure(MPa)) FROM downtime), 3)) AS Skewness
+FROM downtime;
 
-#Fourth Moment Business Decision
--- Kurtosis Calculation (using above values)
+-- Fourth Moment Business Decision
 
+-- Kurtosis Calculation
 SELECT 
   (COUNT(*) * (COUNT(*) + 1)) / ((COUNT(*) - 1) * (COUNT(*) - 2) * (COUNT(*) - 3)) * 
-  SUM(POW((Coolant_Pressure - (SELECT AVG(Coolant_Pressure) FROM cars)) / 
-  (SELECT STDDEV(Coolant_Pressure) FROM cars), 4)) - 
-  (3 * POW(COUNT(*) - 1, 2)) / ((COUNT(*) - 2) * (COUNT(*) - 3)) AS kurtosis
-FROM cars;
+  SUM(POW((Hydraulic_Pressure(MPa) - (SELECT AVG(Hydraulic_Pressure(MPa)) FROM downtime)) / 
+  (SELECT STDDEV(Hydraulic_Pressure(MPa)) FROM downtime), 4)) - 
+  (3 * POW(COUNT(*) - 1, 2)) / ((COUNT(*) - 2) * (COUNT(*) - 3)) AS Kurtosis
+FROM downtime;
 
 
-# ------------------------------------ Air_System_Pressure ---------------------------------------------------
 
-SELECT AVG(Air_System_Pressure) AS Mean
-FROM cars;
+-- ================= Coolant_Level(%) ======================
 
-#Range 
-SELECT MAX(Air_System_Pressure) - MIN(Air_System_Pressure) AS Air_System_Pressure_Range 
-FROM cars
-WHERE Air_System_Pressure IS NOT NULL;
- 
- # Variance
+-- First Moment Business Decision
+
+-- Mean
+SELECT AVG(Coolant_Level(%)) AS Mean
+FROM downtime;
+
+-- Median
 SELECT 
-    VAR_POP(Air_System_Pressure) AS Variance_Population,
-    STDDEV_POP(Air_System_Pressure) AS Std_Dev_Population,
-    MAX(Air_System_Pressure) - MIN(Air_System_Pressure) as range_1
-FROM cars
-WHERE Air_System_Pressure IS NOT NULL;
+    AVG(Coolant_Level(%)) AS Median
+FROM (
+    SELECT Coolant_Level(%)
+    FROM downtime
+    WHERE Coolant_Level(%) IS NOT NULL
+    ORDER BY Coolant_Level(%)
+    LIMIT 2 - (SELECT COUNT(*) % 2 FROM downtime WHERE Coolant_Level(%) IS NOT NULL)  -- Adjust for odd/even number of rows
+    OFFSET FLOOR((SELECT COUNT(*) FROM downtime WHERE Coolant_Level(%) IS NOT NULL) / 2)  -- Get middle index for odd/even rows
+) AS subquery;
 
-# Third Moment Business Decision
--- Skewness Calculation (using above values)
+-- Second Moment Business Decision
+
+-- Range
+SELECT 
+    MAX(Coolant_Level(%)) - MIN(Coolant_Level(%)) AS Range 
+FROM downtime;
+
+-- Variance and Standard Deviation
+SELECT 
+    VAR_POP(Coolant_Level(%)) AS Variance_Population,
+    STDDEV_POP(Coolant_Level(%)) AS Std_Dev_Population
+FROM downtime;
+
+-- Third Moment Business Decision
+
+-- Skewness Calculation
 SELECT 
   (COUNT(*) / ((COUNT(*) - 1) * (COUNT(*) - 2))) * 
-  SUM(POW((Air_System_Pressure - (SELECT AVG(Air_System_Pressure) FROM cars)) / 
-  (SELECT STDDEV(Air_System_Pressure) FROM cars), 3)) AS skewness
-FROM cars;
+  SUM(POW(Coolant_Level(%)) - (SELECT AVG(Coolant_Level(%)) FROM downtime)) / 
+  (SELECT STDDEV(Coolant_Level(%)) FROM downtime), 3)) AS Skewness
+FROM downtime;
 
-#Fourth Moment Business Decision
--- Kurtosis Calculation (using above values)
+-- Fourth Moment Business Decision
 
+-- Kurtosis Calculation
 SELECT 
   (COUNT(*) * (COUNT(*) + 1)) / ((COUNT(*) - 1) * (COUNT(*) - 2) * (COUNT(*) - 3)) * 
-  SUM(POW((Air_System_Pressure - (SELECT AVG(Air_System_Pressure) FROM cars)) / 
-  (SELECT STDDEV(Air_System_Pressure) FROM cars), 4)) - 
-  (3 * POW(COUNT(*) - 1, 2)) / ((COUNT(*) - 2) * (COUNT(*) - 3)) AS kurtosis
-FROM cars;
+  SUM(POW(Coolant_Level(%) - (SELECT AVG(Coolant_Level(%)) FROM downtime)) / 
+  (SELECT STDDEV(Coolant_Level(%)) FROM downtime), 4)) - 
+  (3 * POW(COUNT(*) - 1, 2)) / ((COUNT(*) - 2) * (COUNT(*) - 3)) AS Kurtosis
+FROM downtime;
 
-# ------------------------------------ Coolant_Temperature ---------------------------------------------------
 
-SELECT AVG(Coolant_Temperature) AS Mean
-FROM cars;
+-- ================= Air_Flow_Pressure(MPa) ======================
 
-#Range 
-SELECT MAX(Coolant_Temperature) - MIN(Coolant_Temperature) AS Coolant_Temperature_Range 
-FROM cars
-WHERE Coolant_Temperature IS NOT NULL;
- 
- # Variance
+-- First Moment Business Decision
+
+-- Mean
+SELECT AVG(Air_Flow_Pressure(MPa)) AS Mean
+FROM downtime;
+
+-- Median
 SELECT 
-    VAR_POP(Coolant_Temperature) AS Variance_Population,
-    STDDEV_POP(Coolant_Temperature) AS Std_Dev_Population,
-    MAX(Coolant_Temperature) - MIN(Coolant_Temperature) as range_1
-FROM cars
-WHERE Coolant_Temperature IS NOT NULL;
+    AVG(Air_Flow_Pressure(MPa)) AS Median
+FROM (
+    SELECT Air_Flow_Pressure(MPa)
+    FROM downtime
+    WHERE Air_Flow_Pressure(MPa) IS NOT NULL
+    ORDER BY Air_Flow_Pressure(MPa)
+    LIMIT 2 - (SELECT COUNT(*) % 2 FROM downtime WHERE Air_Flow_Pressure(MPa) IS NOT NULL)  -- Adjust for odd/even number of rows
+    OFFSET FLOOR((SELECT COUNT(*) FROM downtime WHERE Air_Flow_Pressure(MPa) IS NOT NULL) / 2)  -- Get middle index for odd/even rows
+) AS subquery;
 
-# Third Moment Business Decision
--- Skewness Calculation (using above values)
+-- Second Moment Business Decision
+
+-- Range
+SELECT 
+    MAX(Air_Flow_Pressure(MPa)) - MIN(Air_Flow_Pressure(MPa)) AS Range 
+FROM downtime;
+
+-- Variance and Standard Deviation
+SELECT 
+    VAR_POP(Air_Flow_Pressure(MPa)) AS Variance_Population,
+    STDDEV_POP(Air_Flow_Pressure(MPa)) AS Std_Dev_Population
+FROM downtime;
+
+-- Third Moment Business Decision
+
+-- Skewness Calculation
 SELECT 
   (COUNT(*) / ((COUNT(*) - 1) * (COUNT(*) - 2))) * 
-  SUM(POW((Coolant_Temperature - (SELECT AVG(Coolant_Temperature) FROM cars)) / 
-  (SELECT STDDEV(Coolant_Temperature) FROM cars), 3)) AS skewness
-FROM cars;
+  SUM(POW(Air_Flow_Pressure(MPa)) - (SELECT AVG(Air_Flow_Pressure(MPa)) FROM downtime)) / 
+  (SELECT STDDEV(Air_Flow_Pressure(MPa)) FROM downtime), 3)) AS Skewness
+FROM downtime;
 
-#Fourth Moment Business Decision
--- Kurtosis Calculation (using above values)
+-- Fourth Moment Business Decision
 
+-- Kurtosis Calculation
 SELECT 
   (COUNT(*) * (COUNT(*) + 1)) / ((COUNT(*) - 1) * (COUNT(*) - 2) * (COUNT(*) - 3)) * 
-  SUM(POW((Coolant_Temperature - (SELECT AVG(Coolant_Temperature) FROM cars)) / 
-  (SELECT STDDEV(Coolant_Temperature) FROM cars), 4)) - 
-  (3 * POW(COUNT(*) - 1, 2)) / ((COUNT(*) - 2) * (COUNT(*) - 3)) AS kurtosis
-FROM cars;
+  SUM(POW(Air_Flow_Pressure(MPa) - (SELECT AVG(Air_Flow_Pressure(MPa)) FROM downtime)) / 
+  (SELECT STDDEV(Air_Flow_Pressure(MPa)) FROM downtime), 4)) - 
+  (3 * POW(COUNT(*) - 1, 2)) / ((COUNT(*) - 2) * (COUNT(*) - 3)) AS Kurtosis
+FROM downtime;
 
-# ------------------------------------ Hydraulic_Oil_Temperature ---------------------------------------------------
 
-SELECT AVG(Hydraulic_Oil_Temperature) AS Mean
-FROM cars;
+-- ================= Coolant_Temp(\u00b0C) ======================
 
-#Range 
-SELECT MAX(Hydraulic_Oil_Temperature) - MIN(Hydraulic_Oil_Temperature) AS Hydraulic_Oil_Temperature_Range 
-FROM cars
-WHERE Hydraulic_Oil_Temperature IS NOT NULL;
- 
- # Variance
+-- First Moment Business Decision
+
+-- Mean
+SELECT AVG(Coolant_Temp(\u00b0C)) AS Mean
+FROM downtime;
+
+-- Median
 SELECT 
-    VAR_POP(Hydraulic_Oil_Temperature) AS Variance_Population,
-    STDDEV_POP(Hydraulic_Oil_Temperature) AS Std_Dev_Population,
-    MAX(Hydraulic_Oil_Temperature) - MIN(Hydraulic_Oil_Temperature) as range_1
-FROM cars
-WHERE Hydraulic_Oil_Temperature IS NOT NULL;
+    AVG(Coolant_Temp(\u00b0C)) AS Median
+FROM (
+    SELECT Coolant_Temp(\u00b0C)
+    FROM downtime
+    WHERE Coolant_Temp(\u00b0C) IS NOT NULL
+    ORDER BY Coolant_Temp(\u00b0C)
+    LIMIT 2 - (SELECT COUNT(*) % 2 FROM downtime WHERE Coolant_Temp(\u00b0C) IS NOT NULL)  -- Adjust for odd/even number of rows
+    OFFSET FLOOR((SELECT COUNT(*) FROM downtime WHERE Coolant_Temp(\u00b0C) IS NOT NULL) / 2)  -- Get middle index for odd/even rows
+) AS subquery;
 
-# Third Moment Business Decision
--- Skewness Calculation (using above values)
+-- Second Moment Business Decision
+
+-- Range
+SELECT 
+    MAX(Coolant_Temp(\u00b0C)) - MIN(Coolant_Temp(\u00b0C)) AS Range 
+FROM downtime;
+
+-- Variance and Standard Deviation
+SELECT 
+    VAR_POP(Coolant_Temp(\u00b0C)) AS Variance_Population,
+    STDDEV_POP(Coolant_Temp(\u00b0C)) AS Std_Dev_Population
+FROM downtime;
+
+-- Third Moment Business Decision
+
+-- Skewness Calculation
 SELECT 
   (COUNT(*) / ((COUNT(*) - 1) * (COUNT(*) - 2))) * 
-  SUM(POW((Hydraulic_Oil_Temperature - (SELECT AVG(Hydraulic_Oil_Temperature) FROM cars)) / 
-  (SELECT STDDEV(Hydraulic_Oil_Temperature) FROM cars), 3)) AS skewness
-FROM cars;
+  SUM(POW(Coolant_Temp(\u00b0C)) - (SELECT AVG(Coolant_Temp(\u00b0C)) FROM downtime)) / 
+  (SELECT STDDEV(Coolant_Temp(\u00b0C)) FROM downtime), 3)) AS Skewness
+FROM downtime;
 
-#Fourth Moment Business Decision
--- Kurtosis Calculation (using above values)
+-- Fourth Moment Business Decision
 
+-- Kurtosis Calculation
 SELECT 
   (COUNT(*) * (COUNT(*) + 1)) / ((COUNT(*) - 1) * (COUNT(*) - 2) * (COUNT(*) - 3)) * 
-  SUM(POW((Hydraulic_Oil_Temperature - (SELECT AVG(Hydraulic_Oil_Temperature) FROM cars)) / 
-  (SELECT STDDEV(Hydraulic_Oil_Temperature) FROM cars), 4)) - 
-  (3 * POW(COUNT(*) - 1, 2)) / ((COUNT(*) - 2) * (COUNT(*) - 3)) AS kurtosis
-FROM cars;
+  SUM(POW(Coolant_Temp(\u00b0C) - (SELECT AVG(Coolant_Temp(\u00b0C)) FROM downtime)) / 
+  (SELECT STDDEV(Coolant_Temp(\u00b0C)) FROM downtime), 4)) - 
+  (3 * POW(COUNT(*) - 1, 2)) / ((COUNT(*) - 2) * (COUNT(*) - 3)) AS Kurtosis
+FROM downtime;
 
 
-# ------------------------------------ Spindle_Bearing_Temperature ---------------------------------------------------
+-- ================= Oil_Temp(\u00b0C) ======================
 
-SELECT AVG(Spindle_Bearing_Temperature) AS Mean
-FROM cars;
+-- First Moment Business Decision
 
-#Range 
-SELECT MAX(Spindle_Bearing_Temperature) - MIN(Spindle_Bearing_Temperature) AS Spindle_Bearing_Temperature_Range 
-FROM cars
-WHERE Spindle_Bearing_Temperature IS NOT NULL;
- 
- # Variance
+-- Mean
+SELECT AVG(Oil_Temp(\u00b0C)) AS Mean
+FROM downtime;
+
+-- Median
 SELECT 
-    VAR_POP(Spindle_Bearing_Temperature) AS Variance_Population,
-    STDDEV_POP(Spindle_Bearing_Temperature) AS Std_Dev_Population,
-    MAX(Spindle_Bearing_Temperature) - MIN(Spindle_Bearing_Temperature) as range_1
-FROM cars
-WHERE Spindle_Bearing_Temperature IS NOT NULL;
+    AVG(Oil_Temp(\u00b0C)) AS Median
+FROM (
+    SELECT Oil_Temp(\u00b0C)
+    FROM downtime
+    WHERE Oil_Temp(\u00b0C) IS NOT NULL
+    ORDER BY Oil_Temp(\u00b0C)
+    LIMIT 2 - (SELECT COUNT(*) % 2 FROM downtime WHERE Oil_Temp(\u00b0C) IS NOT NULL)  -- Adjust for odd/even number of rows
+    OFFSET FLOOR((SELECT COUNT(*) FROM downtime WHERE Oil_Temp(\u00b0C) IS NOT NULL) / 2)  -- Get middle index for odd/even rows
+) AS subquery;
 
-# Third Moment Business Decision
--- Skewness Calculation (using above values)
+-- Second Moment Business Decision
+
+-- Range
+SELECT 
+    MAX(Oil_Temp(\u00b0C)) - MIN(Oil_Temp(\u00b0C)) AS Range 
+FROM downtime;
+
+-- Variance and Standard Deviation
+SELECT 
+    VAR_POP(Oil_Temp(\u00b0C)) AS Variance_Population,
+    STDDEV_POP(Oil_Temp(\u00b0C)) AS Std_Dev_Population
+FROM downtime;
+
+-- Third Moment Business Decision
+
+-- Skewness Calculation
 SELECT 
   (COUNT(*) / ((COUNT(*) - 1) * (COUNT(*) - 2))) * 
-  SUM(POW((Spindle_Bearing_Temperature - (SELECT AVG(Spindle_Bearing_Temperature) FROM cars)) / 
-  (SELECT STDDEV(Spindle_Bearing_Temperature) FROM cars), 3)) AS skewness
-FROM cars;
+  SUM(POW(Oil_Temp(\u00b0C)) - (SELECT AVG(Oil_Temp(\u00b0C)) FROM downtime)) / 
+  (SELECT STDDEV(Oil_Temp(\u00b0C)) FROM downtime), 3)) AS Skewness
+FROM downtime;
 
-#Fourth Moment Business Decision
--- Kurtosis Calculation (using above values)
+-- Fourth Moment Business Decision
 
+-- Kurtosis Calculation
 SELECT 
   (COUNT(*) * (COUNT(*) + 1)) / ((COUNT(*) - 1) * (COUNT(*) - 2) * (COUNT(*) - 3)) * 
-  SUM(POW((Spindle_Bearing_Temperature - (SELECT AVG(Spindle_Bearing_Temperature) FROM cars)) / 
-  (SELECT STDDEV(Spindle_Bearing_Temperature) FROM cars), 4)) - 
-  (3 * POW(COUNT(*) - 1, 2)) / ((COUNT(*) - 2) * (COUNT(*) - 3)) AS kurtosis
-FROM cars;
+  SUM(POW(Oil_Temp(\u00b0C) - (SELECT AVG(Oil_Temp(\u00b0C)) FROM downtime)) / 
+  (SELECT STDDEV(Oil_Temp(\u00b0C)) FROM downtime), 4)) - 
+  (3 * POW(COUNT(*) - 1, 2)) / ((COUNT(*) - 2) * (COUNT(*) - 3)) AS Kurtosis
+FROM downtime;
 
 
-# ------------------------------------ Spindle_Vibration ---------------------------------------------------
 
-SELECT AVG(Spindle_Vibration) AS Mean
-FROM cars;
+-- ================= Bearing_Temp(\u00b0C) ======================
 
-#Range 
-SELECT MAX(Spindle_Vibration) - MIN(Spindle_Vibration) AS Coolant_Pressure_Range 
-FROM cars
-WHERE Spindle_Vibration IS NOT NULL;
- 
- # Variance
+-- First Moment Business Decision
+
+-- Mean
+SELECT AVG(Bearing_Temp(\u00b0C)) AS Mean
+FROM downtime;
+
+-- Median
 SELECT 
-    VAR_POP(Spindle_Vibration) AS Variance_Population,
-    STDDEV_POP(Spindle_Vibration) AS Std_Dev_Population,
-    MAX(Spindle_Vibration) - MIN(Spindle_Vibration) as range_1
-FROM cars
-WHERE Spindle_Vibration IS NOT NULL;
+    AVG(Bearing_Temp(\u00b0C)) AS Median
+FROM (
+    SELECT Bearing_Temp(\u00b0C)
+    FROM downtime
+    WHERE Bearing_Temp(\u00b0C) IS NOT NULL
+    ORDER BY Bearing_Temp(\u00b0C)
+    LIMIT 2 - (SELECT COUNT(*) % 2 FROM downtime WHERE Bearing_Temp(\u00b0C) IS NOT NULL)  -- Adjust for odd/even number of rows
+    OFFSET FLOOR((SELECT COUNT(*) FROM downtime WHERE Bearing_Temp(\u00b0C) IS NOT NULL) / 2)  -- Get middle index for odd/even rows
+) AS subquery;
 
-# Third Moment Business Decision
--- Skewness Calculation (using above values)
+-- Second Moment Business Decision
+
+-- Range
+SELECT 
+    MAX(Bearing_Temp(\u00b0C)) - MIN(Bearing_Temp(\u00b0C)) AS Range 
+FROM downtime;
+
+-- Variance and Standard Deviation
+SELECT 
+    VAR_POP(Bearing_Temp(\u00b0C)) AS Variance_Population,
+    STDDEV_POP(Bearing_Temp(\u00b0C)) AS Std_Dev_Population
+FROM downtime;
+
+-- Third Moment Business Decision
+
+-- Skewness Calculation
 SELECT 
   (COUNT(*) / ((COUNT(*) - 1) * (COUNT(*) - 2))) * 
-  SUM(POW((Spindle_Vibration - (SELECT AVG(Spindle_Vibration) FROM cars)) / 
-  (SELECT STDDEV(Spindle_Vibration) FROM cars), 3)) AS skewness
-FROM cars;
+  SUM(POW(Bearing_Temp(\u00b0C)) - (SELECT AVG(Bearing_Temp(\u00b0C)) FROM downtime)) / 
+  (SELECT STDDEV(Bearing_Temp(\u00b0C)) FROM downtime), 3)) AS Skewness
+FROM downtime;
 
-#Fourth Moment Business Decision
--- Kurtosis Calculation (using above values)
+-- Fourth Moment Business Decision
 
+-- Kurtosis Calculation
 SELECT 
   (COUNT(*) * (COUNT(*) + 1)) / ((COUNT(*) - 1) * (COUNT(*) - 2) * (COUNT(*) - 3)) * 
-  SUM(POW((Spindle_Vibration - (SELECT AVG(Spindle_Vibration) FROM cars)) / 
-  (SELECT STDDEV(Spindle_Vibration) FROM cars), 4)) - 
-  (3 * POW(COUNT(*) - 1, 2)) / ((COUNT(*) - 2) * (COUNT(*) - 3)) AS kurtosis
-FROM cars;
+  SUM(POW(Bearing_Temp(\u00b0C) - (SELECT AVG(Bearing_Temp(\u00b0C)) FROM downtime)) / 
+  (SELECT STDDEV(Bearing_Temp(\u00b0C)) FROM downtime), 4)) - 
+  (3 * POW(COUNT(*) - 1, 2)) / ((COUNT(*) - 2) * (COUNT(*) - 3)) AS Kurtosis
+FROM downtime;
 
 
-# ------------------------------------ Coolant_Temperature ---------------------------------------------------
 
-SELECT AVG(Coolant_Temperature) AS Mean
-FROM cars;
+-- ================= Spindle_Shift(\u00b5m) ======================
 
-#Range 
-SELECT MAX(Coolant_Temperature) - MIN(Coolant_Temperature) AS Coolant_Temperature_Range 
-FROM cars
-WHERE Coolant_Temperature IS NOT NULL;
- 
- # Variance
+-- First Moment Business Decision
+
+-- Mean
+SELECT AVG(Spindle_Shift(\u00b5m)) AS Mean
+FROM downtime;
+
+-- Median
 SELECT 
-    VAR_POP(Coolant_Temperature) AS Variance_Population,
-    STDDEV_POP(Coolant_Temperature) AS Std_Dev_Population,
-    MAX(Coolant_Temperature) - MIN(Coolant_Temperature) as range_1
-FROM cars
-WHERE Coolant_Temperature IS NOT NULL;
+    AVG(Spindle_Shift(\u00b5m)) AS Median
+FROM (
+    SELECT Spindle_Shift(\u00b5m)
+    FROM downtime
+    WHERE Spindle_Shift(\u00b5m) IS NOT NULL
+    ORDER BY Spindle_Shift(\u00b5m)
+    LIMIT 2 - (SELECT COUNT(*) % 2 FROM downtime WHERE Spindle_Shift(\u00b5m) IS NOT NULL)  -- Adjust for odd/even number of rows
+    OFFSET FLOOR((SELECT COUNT(*) FROM downtime WHERE Spindle_Shift(\u00b5m) IS NOT NULL) / 2)  -- Get middle index for odd/even rows
+) AS subquery;
 
-# Third Moment Business Decision
--- Skewness Calculation (using above values)
+-- Second Moment Business Decision
+
+-- Range
+SELECT 
+    MAX(Spindle_Shift(\u00b5m)) - MIN(Spindle_Shift(\u00b5m)) AS Range 
+FROM downtime;
+
+-- Variance and Standard Deviation
+SELECT 
+    VAR_POP(Spindle_Shift(\u00b5m)) AS Variance_Population,
+    STDDEV_POP(Spindle_Shift(\u00b5m)) AS Std_Dev_Population
+FROM downtime;
+
+-- Third Moment Business Decision
+
+-- Skewness Calculation
 SELECT 
   (COUNT(*) / ((COUNT(*) - 1) * (COUNT(*) - 2))) * 
-  SUM(POW((Coolant_Temperature - (SELECT AVG(Coolant_Temperature) FROM cars)) / 
-  (SELECT STDDEV(Coolant_Temperature) FROM cars), 3)) AS skewness
-FROM cars;
+  SUM(POW(Spindle_Shift(\u00b5m)) - (SELECT AVG(Spindle_Shift(\u00b5m)) FROM downtime)) / 
+  (SELECT STDDEV(Spindle_Shift(\u00b5m)) FROM downtime), 3)) AS Skewness
+FROM downtime;
 
-#Fourth Moment Business Decision
--- Kurtosis Calculation (using above values)
+-- Fourth Moment Business Decision
 
+-- Kurtosis Calculation
 SELECT 
   (COUNT(*) * (COUNT(*) + 1)) / ((COUNT(*) - 1) * (COUNT(*) - 2) * (COUNT(*) - 3)) * 
-  SUM(POW((Coolant_Temperature - (SELECT AVG(Coolant_Temperature) FROM cars)) / 
-  (SELECT STDDEV(Coolant_Temperature) FROM cars), 4)) - 
-  (3 * POW(COUNT(*) - 1, 2)) / ((COUNT(*) - 2) * (COUNT(*) - 3)) AS kurtosis
-FROM cars;
+  SUM(POW(Spindle_Shift(\u00b5m) - (SELECT AVG(Spindle_Shift(\u00b5m) FROM downtime)) / 
+  (SELECT STDDEV(Spindle_Shift(\u00b5m)) FROM downtime), 4)) - 
+  (3 * POW(COUNT(*) - 1, 2)) / ((COUNT(*) - 2) * (COUNT(*) - 3)) AS Kurtosis
+FROM downtime;
 
-# ------------------------------------ Tool_Vibration ---------------------------------------------------
 
-SELECT AVG(Tool_Vibration) AS Mean
-FROM cars;
+   ,Hydraulic_Pressure(MPa)  7.1
+   ,Coolant_Level(%) 69.3
+   ,Air_Flow_Pressure(MPa)  0.63
+   ,Coolant_Temp(\u00b0C)   26.0
+   ,Oil_Temp(\u00b0C)     46.0
+   ,Bearing_Temp(\u00b0C)  33.4
+   ,Spindle_Shift(\u00b5m)  1.29
+   ,Tool_Wear(\u00b5m)    26.49
+      
+   ,Spindle_Rotation(RPM)  25892.0
+   ,Power_Input(kw)       3.35
+   ,Torque(Nm)            24.05
+   ,Force(kN)             3.58
 
-#Range 
-SELECT MAX(Tool_Vibration) - MIN(Tool_Vibration) AS Coolant_Pressure_Range 
-FROM cars
-WHERE Tool_Vibration IS NOT NULL;
- 
- # Variance
+
+-- ================= Tool_Wear(\u00b5m) ======================
+
+-- First Moment Business Decision
+
+-- Mean
+SELECT AVG(Tool_Wear(\u00b5m)) AS Mean
+FROM downtime;
+
+-- Median
 SELECT 
-    VAR_POP(Tool_Vibration) AS Variance_Population,
-    STDDEV_POP(Tool_Vibration) AS Std_Dev_Population,
-    MAX(Tool_Vibration) - MIN(Tool_Vibration) as range_1
-FROM cars
-WHERE Tool_Vibration IS NOT NULL;
+    AVG(Tool_Wear(\u00b5m)) AS Median
+FROM (
+    SELECT Tool_Wear(\u00b5m)
+    FROM downtime
+    WHERE Tool_Wear(\u00b5m) IS NOT NULL
+    ORDER BY Tool_Wear(\u00b5m)
+    LIMIT 2 - (SELECT COUNT(*) % 2 FROM downtime WHERE Tool_Wear(\u00b5m) IS NOT NULL)  -- Adjust for odd/even number of rows
+    OFFSET FLOOR((SELECT COUNT(*) FROM downtime WHERE Tool_Wear(\u00b5m) IS NOT NULL) / 2)  -- Get middle index for odd/even rows
+) AS subquery;
 
-# Third Moment Business Decision
--- Skewness Calculation (using above values)
+-- Second Moment Business Decision
+
+-- Range
+SELECT 
+    MAX(Tool_Wear(\u00b5m)) - MIN(Tool_Wear(\u00b5m)) AS Range 
+FROM downtime;
+
+-- Variance and Standard Deviation
+SELECT 
+    VAR_POP(Tool_Wear(\u00b5m)) AS Variance_Population,
+    STDDEV_POP(Tool_Wear(\u00b5m)) AS Std_Dev_Population
+FROM downtime;
+
+-- Third Moment Business Decision
+
+-- Skewness Calculation
 SELECT 
   (COUNT(*) / ((COUNT(*) - 1) * (COUNT(*) - 2))) * 
-  SUM(POW((Tool_Vibration - (SELECT AVG(Tool_Vibration) FROM cars)) / 
-  (SELECT STDDEV(Tool_Vibration) FROM cars), 3)) AS skewness
-FROM cars;
+  SUM(POW(Tool_Wear(\u00b5m)) - (SELECT AVG(Tool_Wear(\u00b5m)) FROM downtime)) / 
+  (SELECT STDDEV(Tool_Wear(\u00b5m)) FROM downtime), 3)) AS Skewness
+FROM downtime;
 
-#Fourth Moment Business Decision
--- Kurtosis Calculation (using above values)
+-- Fourth Moment Business Decision
 
+-- Kurtosis Calculation
 SELECT 
   (COUNT(*) * (COUNT(*) + 1)) / ((COUNT(*) - 1) * (COUNT(*) - 2) * (COUNT(*) - 3)) * 
-  SUM(POW((Tool_Vibration - (SELECT AVG(Tool_Vibration) FROM cars)) / 
-  (SELECT STDDEV(Tool_Vibration) FROM cars), 4)) - 
-  (3 * POW(COUNT(*) - 1, 2)) / ((COUNT(*) - 2) * (COUNT(*) - 3)) AS kurtosis
-FROM cars;
+  SUM(POW(Tool_Wear(\u00b5m) - (SELECT AVG(Tool_Wear(\u00b5m) FROM downtime)) / 
+  (SELECT STDDEV(Tool_Wear(\u00b5m)) FROM downtime), 4)) - 
+  (3 * POW(COUNT(*) - 1, 2)) / ((COUNT(*) - 2) * (COUNT(*) - 3)) AS Kurtosis
+FROM downtime;
 
-# ------------------------------------ Spindle_Speed ---------------------------------------------------
 
-SELECT AVG(Spindle_Speed) AS Mean
-FROM cars;
+-- ================= Spindle_Rotation(RPM) ======================
 
-#Range 
-SELECT MAX(Spindle_Speed) - MIN(Spindle_Speed) AS Spindle_Speed_Range 
-FROM cars
-WHERE Spindle_Speed IS NOT NULL;
- 
- # Variance
+-- First Moment Business Decision
+
+-- Mean
+SELECT AVG(Spindle_Rotation(RPM)) AS Mean
+FROM downtime;
+
+-- Median
 SELECT 
-    VAR_POP(Spindle_Speed) AS Variance_Population,
-    STDDEV_POP(Spindle_Speed) AS Std_Dev_Population,
-    MAX(Spindle_Speed) - MIN(Spindle_Speed) as range_1
-FROM cars
-WHERE Spindle_Speed IS NOT NULL;
+    AVG(Spindle_Rotation(RPM)) AS Median
+FROM (
+    SELECT Spindle_Rotation(RPM)
+    FROM downtime
+    WHERE Spindle_Rotation(RPM) IS NOT NULL
+    ORDER BY Spindle_Rotation(RPM)
+    LIMIT 2 - (SELECT COUNT(*) % 2 FROM downtime WHERE Spindle_Rotation(RPM) IS NOT NULL)  -- Adjust for odd/even number of rows
+    OFFSET FLOOR((SELECT COUNT(*) FROM downtime WHERE Spindle_Rotation(RPM) IS NOT NULL) / 2)  -- Get middle index for odd/even rows
+) AS subquery;
 
-# Third Moment Business Decision
--- Skewness Calculation (using above values)
+-- Second Moment Business Decision
+
+-- Range
+SELECT 
+    MAX(Spindle_Rotation(RPM)) - MIN(Spindle_Rotation(RPM)) AS Range 
+FROM downtime;
+
+-- Variance and Standard Deviation
+SELECT 
+    VAR_POP(Spindle_Rotation(RPM)) AS Variance_Population,
+    STDDEV_POP(Spindle_Rotation(RPM)) AS Std_Dev_Population
+FROM downtime;
+
+-- Third Moment Business Decision
+
+-- Skewness Calculation
 SELECT 
   (COUNT(*) / ((COUNT(*) - 1) * (COUNT(*) - 2))) * 
-  SUM(POW((Spindle_Speed - (SELECT AVG(Spindle_Speed) FROM cars)) / 
-  (SELECT STDDEV(Spindle_Speed) FROM cars), 3)) AS skewness
-FROM cars;
+  SUM(POW(Spindle_Rotation(RPM)) - (SELECT AVG(Spindle_Rotation(RPM)) FROM downtime)) / 
+  (SELECT STDDEV(Spindle_Rotation(RPM)) FROM downtime), 3)) AS Skewness
+FROM downtime;
 
-#Fourth Moment Business Decision
--- Kurtosis Calculation (using above values)
+-- Fourth Moment Business Decision
 
+-- Kurtosis Calculation
 SELECT 
   (COUNT(*) * (COUNT(*) + 1)) / ((COUNT(*) - 1) * (COUNT(*) - 2) * (COUNT(*) - 3)) * 
-  SUM(POW((Spindle_Speed - (SELECT AVG(Spindle_Speed) FROM cars)) / 
-  (SELECT STDDEV(Spindle_Speed) FROM cars), 4)) - 
-  (3 * POW(COUNT(*) - 1, 2)) / ((COUNT(*) - 2) * (COUNT(*) - 3)) AS kurtosis
-FROM cars;
+  SUM(POW(Spindle_Rotation(RPM) - (SELECT AVG(Spindle_Rotation(RPM) FROM downtime)) / 
+  (SELECT STDDEV(Spindle_Rotation(RPM)) FROM downtime), 4)) - 
+  (3 * POW(COUNT(*) - 1, 2)) / ((COUNT(*) - 2) * (COUNT(*) - 3)) AS Kurtosis
+FROM downtime;
 
-# ------------------------------------ Voltage ---------------------------------------------------
 
-SELECT AVG(Voltage) AS Mean
-FROM cars;
 
-#Range 
-SELECT MAX(Voltage) - MIN(Voltage) AS Voltage_Range 
-FROM cars
-WHERE Voltage IS NOT NULL;
- 
- # Variance
+-- ================= Power_Input(kw) ======================
+
+-- First Moment Business Decision
+
+-- Mean
+SELECT AVG(Power_Input(kw)) AS Mean
+FROM downtime;
+
+-- Median
 SELECT 
-    VAR_POP(Voltage) AS Variance_Population,
-    STDDEV_POP(Voltage) AS Std_Dev_Population,
-    MAX(Voltage) - MIN(Voltage) as range_1
-FROM cars
-WHERE Voltage IS NOT NULL;
+    AVG(Power_Input(kw)) AS Median
+FROM (
+    SELECT Power_Input(kw)
+    FROM downtime
+    WHERE Power_Input(kw) IS NOT NULL
+    ORDER BY Power_Input(kw)
+    LIMIT 2 - (SELECT COUNT(*) % 2 FROM downtime WHERE Power_Input(kw) IS NOT NULL)  -- Adjust for odd/even number of rows
+    OFFSET FLOOR((SELECT COUNT(*) FROM downtime WHERE Power_Input(kw) IS NOT NULL) / 2)  -- Get middle index for odd/even rows
+) AS subquery;
 
-# Third Moment Business Decision
--- Skewness Calculation (using above values)
+-- Second Moment Business Decision
+
+-- Range
+SELECT 
+    MAX(Power_Input(kw)) - MIN(Power_Input(kw)) AS Range 
+FROM downtime;
+
+-- Variance and Standard Deviation
+SELECT 
+    VAR_POP(Power_Input(kw)) AS Variance_Population,
+    STDDEV_POP(Power_Input(kw)) AS Std_Dev_Population
+FROM downtime;
+
+-- Third Moment Business Decision
+
+-- Skewness Calculation
 SELECT 
   (COUNT(*) / ((COUNT(*) - 1) * (COUNT(*) - 2))) * 
-  SUM(POW((Voltage - (SELECT AVG(Voltage) FROM cars)) / 
-  (SELECT STDDEV(Voltage) FROM cars), 3)) AS skewness
-FROM cars;
+  SUM(POW(Power_Input(kw)) - (SELECT AVG(Power_Input(kw)) FROM downtime)) / 
+  (SELECT STDDEV(Power_Input(kw)) FROM downtime), 3)) AS Skewness
+FROM downtime;
 
-#Fourth Moment Business Decision
--- Kurtosis Calculation (using above values)
+-- Fourth Moment Business Decision
 
+-- Kurtosis Calculation
 SELECT 
   (COUNT(*) * (COUNT(*) + 1)) / ((COUNT(*) - 1) * (COUNT(*) - 2) * (COUNT(*) - 3)) * 
-  SUM(POW((Voltage - (SELECT AVG(Voltage) FROM cars)) / 
-  (SELECT STDDEV(Voltage) FROM cars), 4)) - 
-  (3 * POW(COUNT(*) - 1, 2)) / ((COUNT(*) - 2) * (COUNT(*) - 3)) AS kurtosis
-FROM cars;
+  SUM(POW(Power_Input(kw) - (SELECT AVG(Power_Input(kw) FROM downtime)) / 
+  (SELECT STDDEV(Power_Input(kw)) FROM downtime), 4)) - 
+  (3 * POW(COUNT(*) - 1, 2)) / ((COUNT(*) - 2) * (COUNT(*) - 3)) AS Kurtosis
+FROM downtime;
 
-# ------------------------------------ Torque ---------------------------------------------------
 
-SELECT AVG(Torque) AS Mean
-FROM cars;
+-- ================= Torque(Nm) ======================
 
-#Range 
-SELECT MAX(Torque) - MIN(Torque) AS Torque_Range 
-FROM cars
-WHERE Torque IS NOT NULL;
- 
- # Variance
+-- First Moment Business Decision
+
+-- Mean
+SELECT AVG(Torque(Nm)) AS Mean
+FROM downtime;
+
+-- Median
 SELECT 
-    VAR_POP(Torque) AS Variance_Population,
-    STDDEV_POP(Torque) AS Std_Dev_Population,
-    MAX(Torque) - MIN(Torque) as range_1
-FROM cars
-WHERE Torque IS NOT NULL;
+    AVG(Torque(Nm)) AS Median
+FROM (
+    SELECT Torque(Nm)
+    FROM downtime
+    WHERE Torque(Nm) IS NOT NULL
+    ORDER BY Torque(Nm)
+    LIMIT 2 - (SELECT COUNT(*) % 2 FROM downtime WHERE Torque(Nm) IS NOT NULL)  -- Adjust for odd/even number of rows
+    OFFSET FLOOR((SELECT COUNT(*) FROM downtime WHERE Torque(Nm) IS NOT NULL) / 2)  -- Get middle index for odd/even rows
+) AS subquery;
 
-# Third Moment Business Decision
--- Skewness Calculation (using above values)
+-- Second Moment Business Decision
+
+-- Range
+SELECT 
+    MAX(Torque(Nm)) - MIN(Torque(Nm)) AS Range 
+FROM downtime;
+
+-- Variance and Standard Deviation
+SELECT 
+    VAR_POP(Torque(Nm)) AS Variance_Population,
+    STDDEV_POP(Torque(Nm)) AS Std_Dev_Population
+FROM downtime;
+
+-- Third Moment Business Decision
+
+-- Skewness Calculation
 SELECT 
   (COUNT(*) / ((COUNT(*) - 1) * (COUNT(*) - 2))) * 
-  SUM(POW((Torque - (SELECT AVG(Torque) FROM cars)) / 
-  (SELECT STDDEV(Torque) FROM cars), 3)) AS skewness
-FROM cars;
+  SUM(POW(Torque(Nm)) - (SELECT AVG(Torque(Nm)) FROM downtime)) / 
+  (SELECT STDDEV(Torque(Nm)) FROM downtime), 3)) AS Skewness
+FROM downtime;
 
-#Fourth Moment Business Decision
--- Kurtosis Calculation (using above values)
+-- Fourth Moment Business Decision
 
+-- Kurtosis Calculation
 SELECT 
   (COUNT(*) * (COUNT(*) + 1)) / ((COUNT(*) - 1) * (COUNT(*) - 2) * (COUNT(*) - 3)) * 
-  SUM(POW((Torque - (SELECT AVG(Torque) FROM cars)) / 
-  (SELECT STDDEV(Torque) FROM cars), 4)) - 
-  (3 * POW(COUNT(*) - 1, 2)) / ((COUNT(*) - 2) * (COUNT(*) - 3)) AS kurtosis
-FROM cars;
+  SUM(POW(Torque(Nm) - (SELECT AVG(Torque(Nm) FROM downtime)) / 
+  (SELECT STDDEV(Torque(Nm)) FROM downtime), 4)) - 
+  (3 * POW(COUNT(*) - 1, 2)) / ((COUNT(*) - 2) * (COUNT(*) - 3)) AS Kurtosis
+FROM downtime;
 
 
-# ------------------------------------ Cutting ---------------------------------------------------
+-- ================= Force(kN) ======================
 
-SELECT AVG(Cutting) AS Mean
-FROM cars;
+-- First Moment Business Decision
 
-#Range 
-SELECT MAX(Cutting) - MIN(Cutting) AS Cutting_Range 
-FROM cars
-WHERE Cutting IS NOT NULL;
- 
- # Variance
+-- Mean
+SELECT AVG(Force(kN)) AS Mean
+FROM downtime;
+
+-- Median
 SELECT 
-    VAR_POP(Cutting) AS Variance_Population,
-    STDDEV_POP(Cutting) AS Std_Dev_Population,
-    MAX(Cutting) - MIN(Cutting) as range_1
-FROM cars
-WHERE Cutting IS NOT NULL;
+    AVG(Force(kN)) AS Median
+FROM (
+    SELECT Force(kN)
+    FROM downtime
+    WHERE Force(kN) IS NOT NULL
+    ORDER BY Force(kN)
+    LIMIT 2 - (SELECT COUNT(*) % 2 FROM downtime WHERE Force(kN) IS NOT NULL)  -- Adjust for odd/even number of rows
+    OFFSET FLOOR((SELECT COUNT(*) FROM downtime WHERE Force(kN) IS NOT NULL) / 2)  -- Get middle index for odd/even rows
+) AS subquery;
 
-# Third Moment Business Decision
--- Skewness Calculation (using above values)
+-- Second Moment Business Decision
+
+-- Range
+SELECT 
+    MAX(Force(kN)) - MIN(Force(kN)) AS Range 
+FROM downtime;
+
+-- Variance and Standard Deviation
+SELECT 
+    VAR_POP(Force(kN)) AS Variance_Population,
+    STDDEV_POP(Force(kN)) AS Std_Dev_Population
+FROM downtime;
+
+-- Third Moment Business Decision
+
+-- Skewness Calculation
 SELECT 
   (COUNT(*) / ((COUNT(*) - 1) * (COUNT(*) - 2))) * 
-  SUM(POW((Cutting - (SELECT AVG(Cutting) FROM cars)) / 
-  (SELECT STDDEV(Cutting) FROM cars), 3)) AS skewness
-FROM cars;
+  SUM(POW(Force(kN)) - (SELECT AVG(Force(kN)) FROM downtime)) / 
+  (SELECT STDDEV(Force(kN)) FROM downtime), 3)) AS Skewness
+FROM downtime;
 
-#Fourth Moment Business Decision
--- Kurtosis Calculation (using above values)
+-- Fourth Moment Business Decision
 
+-- Kurtosis Calculation
 SELECT 
   (COUNT(*) * (COUNT(*) + 1)) / ((COUNT(*) - 1) * (COUNT(*) - 2) * (COUNT(*) - 3)) * 
-  SUM(POW((Cutting - (SELECT AVG(Cutting) FROM cars)) / 
-  (SELECT STDDEV(Cutting) FROM cars), 4)) - 
-  (3 * POW(COUNT(*) - 1, 2)) / ((COUNT(*) - 2) * (COUNT(*) - 3)) AS kurtosis
-FROM cars;
+  SUM(POW(Force(kN) - (SELECT AVG(Force(kN) FROM downtime)) / 
+  (SELECT STDDEV(Force(kN)) FROM downtime), 4)) - 
+  (3 * POW(COUNT(*) - 1, 2)) / ((COUNT(*) - 2) * (COUNT(*) - 3)) AS Kurtosis
+FROM downtime;
+
+
